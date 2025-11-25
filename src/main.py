@@ -39,6 +39,14 @@ COLOR_JUGAR_HOVER = (90, 150, 250)      # Azul (Color al pasar el ratón)
 COLOR_SALIR_BASE = (255, 215, 0)        # Amarillo/Rubio (Color base)
 COLOR_SALIR_HOVER = (255, 230, 80)      # Amarillo/Rubio (Color al pasar el ratón)
 
+# --- COLORES DE BOTONES JUEGO ---
+COLOR_REINICIAR_BASE = (220, 100, 60)   # Naranja
+COLOR_REINICIAR_HOVER = (250, 130, 90)
+COLOR_NUEVO_BASE = (60, 180, 100)       # Verde
+COLOR_NUEVO_HOVER = (90, 210, 130)
+COLOR_MENU_BASE = (100, 100, 200)       # Azul/Violeta
+COLOR_MENU_HOVER = (130, 130, 230)
+
 # --- ESTADOS DE JUEGO ---
 ESTADO_MENU = "MENU"
 ESTADO_JUEGO = "JUEGO"
@@ -301,6 +309,55 @@ def ejecutar_juego():
 
     botones_menu = [boton_jugar, boton_salir]
 
+    # --- BOTONES DEL JUEGO ---
+    def accion_reiniciar():
+        nonlocal matriz_actual, matriz_errores
+        matriz_actual = matriz_fija.copy().astype(TIPO_MATRIZ)
+        matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+        print("Tablero reiniciado.")
+
+    def accion_nuevo_juego():
+        nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial
+        nueva_matriz = cargar_y_limpiar_datos()
+        if nueva_matriz is not None:
+            matriz_inicial = nueva_matriz
+            matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
+            matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
+            matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+            print("Nuevo juego generado.")
+
+    def accion_volver_menu():
+        global ESTADO_ACTUAL
+        ESTADO_ACTUAL = ESTADO_MENU
+        print("Regresando al menú.")
+
+    # Configuración de posición para botones laterales
+    X_BOTONES_JUEGO = 950
+    Y_INICIO_BOTONES = 200
+    ANCHO_BOTON_JUEGO = 200
+    ALTO_BOTON_JUEGO = 60
+    ESPACIO_BOTONES = 80
+
+    boton_reiniciar = Boton(
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES, 
+        ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, 
+        "Reiniciar", COLOR_REINICIAR_BASE, COLOR_REINICIAR_HOVER, accion_reiniciar
+    )
+    
+    boton_nuevo = Boton(
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES, 
+        ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, 
+        "Nuevo Juego", COLOR_NUEVO_BASE, COLOR_NUEVO_HOVER, accion_nuevo_juego
+    )
+
+    boton_menu_juego = Boton(
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 2, 
+        ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, 
+        "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu
+    )
+
+    botones_juego = [boton_reiniciar, boton_nuevo, boton_menu_juego]
+
     # --- BUCLE PRINCIPAL DEL JUEGO (Pygame Loop) ---
     global ESTADO_ACTUAL
     while ESTADO_ACTUAL != ESTADO_SALIR: 
@@ -317,6 +374,10 @@ def ejecutar_juego():
             
             # Manejo de eventos en ESTADO_JUEGO
             elif ESTADO_ACTUAL == ESTADO_JUEGO:
+                # Manejo de botones del juego
+                for boton in botones_juego:
+                    boton.manejar_evento(evento)
+
                 if evento.type == pygame.MOUSEBUTTONDOWN:
                     # Obtiene las coordenadas de la matriz usando la función pura
                     celda_seleccionada = obtener_coordenadas_matriz(
@@ -325,18 +386,16 @@ def ejecutar_juego():
                         OFFSET_GRILLA_Y, 
                         TAMANO_CELDA
                     )
-                    # print(f"Celda seleccionada: {celda_seleccionada}") # Debug
 
                 if evento.type == pygame.KEYDOWN:
                     if celda_seleccionada:
                         fila, columna = celda_seleccionada
                         
                         # Verifica si la celda es editable (no es un número fijo)
-                        # Nota: matriz_fija tiene 0 en las celdas vacías iniciales
                         if matriz_fija[fila, columna] == 0:
                             numero = None
                             
-                            # Mapeo de teclas numéricas (Teclado superior y Numpad)
+                            # Mapeo de teclas numéricas
                             if evento.key == pygame.K_1 or evento.key == pygame.K_KP1: numero = 1
                             elif evento.key == pygame.K_2 or evento.key == pygame.K_KP2: numero = 2
                             elif evento.key == pygame.K_3 or evento.key == pygame.K_KP3: numero = 3
@@ -351,17 +410,16 @@ def ejecutar_juego():
                             if numero is not None:
                                 try:
                                     # 1. Prepara una matriz temporal con la celda vacía para validar
-                                    # Esto evita que el número choque consigo mismo si ya está puesto (o si se está reemplazando)
                                     matriz_para_validar = colocar_numero(matriz_actual, fila, columna, 0)
                                     
-                                    # 2. Validación en vivo con Prolog usando la matriz temporal
+                                    # 2. Validación en vivo con Prolog
                                     if numero != 0:
                                         es_valido = validar_numero_prolog(matriz_para_validar, fila, columna, numero)
                                         es_error = not es_valido
                                     else:
                                         es_error = False
                                     
-                                    # 3. Actualización Inmutable: Aplica el cambio real al tablero
+                                    # 3. Actualización Inmutable
                                     matriz_actual = colocar_numero(matriz_actual, fila, columna, numero)
                                     
                                     # 4. Actualiza la matriz de errores
@@ -373,7 +431,6 @@ def ejecutar_juego():
                                             print("¡VICTORIA! Tablero completado correctamente.")
                                             ESTADO_ACTUAL = ESTADO_VICTORIA
                                     
-                                    # print(f"Número {numero} colocado en ({fila}, {columna}). Error: {es_error}")
                                 except ValueError as e:
                                     print(f"Error al colocar número: {e}")
 
@@ -385,18 +442,17 @@ def ejecutar_juego():
         # 4. Lógica de Renderizado
         
         if ESTADO_ACTUAL == ESTADO_MENU:
-            # Dibuja el fondo del menú: usa la imagen si se cargó, sino usa el color NEGRO
+            # Dibuja el fondo del menú
             if fondo_menu_imagen:
                 pantalla.blit(fondo_menu_imagen, (0, 0))
             else:
                 pantalla.fill(COLOR_FONDO_MENU) 
             
-            # Dibuja el título: usa la imagen si se cargó, sino renderiza el texto predeterminado
+            # Dibuja el título
             if titulo_imagen:
                 posicion_x = ANCHO_PANTALLA // 2 - titulo_imagen.get_width() // 2
                 pantalla.blit(titulo_imagen, (posicion_x, 80)) 
             else:
-                # Renderiza Texto por defecto (si la imagen no existe)
                 try:
                     fuente_titulo = pygame.font.Font(None, 80)
                     texto_titulo = fuente_titulo.render(TITULO_JUEGO, True, BLANCO)
@@ -405,15 +461,15 @@ def ejecutar_juego():
                 except:
                     pass
 
-            # Dibuja los botones
+            # Dibuja los botones del menú
             for boton in botones_menu:
                 boton.dibujar(pantalla)
             
         elif ESTADO_ACTUAL == ESTADO_JUEGO:
-            # Dibuja el fondo del modo JUEGO con su color separado
+            # Dibuja el fondo del modo JUEGO
             pantalla.fill(COLOR_FONDO_JUEGO) 
             
-            # Renderiza un título más pequeño para el modo JUEGO
+            # Renderiza un título más pequeño
             try:
                 fuente_titulo = pygame.font.Font(None, 40)
                 texto_titulo = fuente_titulo.render(TITULO_JUEGO, True, BLANCO)
@@ -427,6 +483,10 @@ def ejecutar_juego():
             dibujar_seleccion(pantalla, celda_seleccionada)
             dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
 
+            # Dibuja los botones del juego
+            for boton in botones_juego:
+                boton.dibujar(pantalla)
+
         elif ESTADO_ACTUAL == ESTADO_VICTORIA:
             # Dibuja el juego de fondo
             pantalla.fill(COLOR_FONDO_JUEGO)
@@ -435,7 +495,7 @@ def ejecutar_juego():
             # Superpone la pantalla de victoria
             dibujar_victoria(pantalla)
 
-        # 5. Actualiza la pantalla para mostrar todos los cambios renderizados
+        # 5. Actualiza la pantalla
         pygame.display.flip()
 
     # Lógica de salida del juego
