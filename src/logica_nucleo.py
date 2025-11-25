@@ -55,3 +55,40 @@ def actualizar_errores(matriz_errores: np.ndarray, fila: int, columna: int, es_e
     nueva_matriz = matriz_errores.copy()
     nueva_matriz[fila, columna] = 1 if es_error else 0
     return nueva_matriz
+
+# Función Pura: Verificar si el tablero está completo (sin ceros)
+def es_tablero_completo(matriz: np.ndarray) -> bool:
+    """Retorna True si no hay ceros en la matriz."""
+    return not np.any(matriz == 0)
+
+# Función Pura: Verificar si el tablero es una solución válida de Sudoku
+def es_tablero_valido(matriz: np.ndarray) -> bool:
+    """
+    Verifica si el tablero completo cumple con todas las reglas del Sudoku.
+    Asume que el tablero está completo (sin ceros).
+    """
+    # Verificar filas
+    for i in range(9):
+        fila = matriz[i, :]
+        if not es_grupo_valido(fila):
+            return False
+            
+    # Verificar columnas
+    for j in range(9):
+        columna = matriz[:, j]
+        if not es_grupo_valido(columna):
+            return False
+            
+    # Verificar bloques 3x3
+    for i in range(0, 9, 3):
+        for j in range(0, 9, 3):
+            bloque = matriz[i:i+3, j:j+3].flatten()
+            if not es_grupo_valido(bloque):
+                return False
+                
+    return True
+
+def es_grupo_valido(grupo: np.ndarray) -> bool:
+    """Verifica si un grupo de 9 números contiene todos los dígitos del 1 al 9."""
+    # Ordena el grupo y verifica si es igual a [1, 2, ..., 9]
+    return np.array_equal(np.sort(grupo), np.arange(1, 10))

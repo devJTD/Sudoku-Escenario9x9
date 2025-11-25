@@ -6,7 +6,7 @@ import numpy as np
 
 # Importa módulos propios de la lógica de datos y el núcleo del juego
 from manejador_datos import cargar_y_limpiar_datos
-from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores
+from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores, es_tablero_completo, es_tablero_valido
 
 import logica_prolog
 from logica_prolog import validar_numero_prolog
@@ -42,6 +42,7 @@ COLOR_SALIR_HOVER = (255, 230, 80)      # Amarillo/Rubio (Color al pasar el rat�
 # --- ESTADOS DE JUEGO ---
 ESTADO_MENU = "MENU"
 ESTADO_JUEGO = "JUEGO"
+ESTADO_VICTORIA = "VICTORIA"
 ESTADO_SALIR = "SALIR"
 
 # --- GESTIÓN DE ESTADOS ---
@@ -196,6 +197,27 @@ def dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores):
                 
                 pantalla.blit(texto_superficie, (pos_x, pos_y))
 
+def dibujar_victoria(pantalla):
+    """Muestra una pantalla de victoria superpuesta."""
+    # Fondo semitransparente
+    superficie_transparente = pygame.Surface((ANCHO_PANTALLA, ALTO_PANTALLA))
+    superficie_transparente.set_alpha(200)
+    superficie_transparente.fill(NEGRO)
+    pantalla.blit(superficie_transparente, (0, 0))
+    
+    fuente_victoria = pygame.font.Font(None, 100)
+    texto_victoria = fuente_victoria.render("¡FELICIDADES!", True, (0, 255, 0))
+    texto_subtitulo = pygame.font.Font(None, 50).render("Has completado el Sudoku correctamente.", True, BLANCO)
+    texto_instruccion = pygame.font.Font(None, 30).render("Haz clic para volver al menú", True, (200, 200, 200))
+    
+    # Centrar textos
+    rect_victoria = texto_victoria.get_rect(center=(ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 - 50))
+    rect_sub = texto_subtitulo.get_rect(center=(ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 + 20))
+    rect_inst = texto_instruccion.get_rect(center=(ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 + 80))
+    
+    pantalla.blit(texto_victoria, rect_victoria)
+    pantalla.blit(texto_subtitulo, rect_sub)
+    pantalla.blit(texto_instruccion, rect_inst)
 
 # --- FUNCIÓN DE EJECUCIÓN PRINCIPAL ---
 def ejecutar_juego():
@@ -345,9 +367,20 @@ def ejecutar_juego():
                                     # 4. Actualiza la matriz de errores
                                     matriz_errores = actualizar_errores(matriz_errores, fila, columna, es_error)
                                     
+                                    # --- VERIFICACIÓN DE VICTORIA ---
+                                    if not es_error and es_tablero_completo(matriz_actual):
+                                        if es_tablero_valido(matriz_actual):
+                                            print("¡VICTORIA! Tablero completado correctamente.")
+                                            ESTADO_ACTUAL = ESTADO_VICTORIA
+                                    
                                     # print(f"Número {numero} colocado en ({fila}, {columna}). Error: {es_error}")
                                 except ValueError as e:
                                     print(f"Error al colocar número: {e}")
+
+            # Manejo de eventos en ESTADO_VICTORIA
+            elif ESTADO_ACTUAL == ESTADO_VICTORIA:
+                if evento.type == pygame.MOUSEBUTTONDOWN:
+                    ESTADO_ACTUAL = ESTADO_MENU
 
         # 4. Lógica de Renderizado
         
@@ -393,6 +426,14 @@ def ejecutar_juego():
             dibujar_grilla(pantalla)
             dibujar_seleccion(pantalla, celda_seleccionada)
             dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
+
+        elif ESTADO_ACTUAL == ESTADO_VICTORIA:
+            # Dibuja el juego de fondo
+            pantalla.fill(COLOR_FONDO_JUEGO)
+            dibujar_grilla(pantalla)
+            dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
+            # Superpone la pantalla de victoria
+            dibujar_victoria(pantalla)
 
         # 5. Actualiza la pantalla para mostrar todos los cambios renderizados
         pygame.display.flip()
