@@ -46,3 +46,12 @@ def obtener_coordenadas_matriz(pos_mouse: tuple, offset_x: int, offset_y: int, t
         return (int(fila), int(columna))
     else:
         return None
+
+# Función Pura: Actualizar Matriz de Errores (Inmutabilidad)
+def actualizar_errores(matriz_errores: np.ndarray, fila: int, columna: int, es_error: bool) -> np.ndarray:
+    """
+    Devuelve una NUEVA matriz de errores con el estado actualizado para la celda.
+    """
+    nueva_matriz = matriz_errores.copy()
+    nueva_matriz[fila, columna] = 1 if es_error else 0
+    return nueva_matriz

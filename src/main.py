@@ -2,11 +2,14 @@
 
 import pygame
 import sys
+import numpy as np
+
 # Importa módulos propios de la lógica de datos y el núcleo del juego
 from manejador_datos import cargar_y_limpiar_datos
-from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero
+from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores
 
 import logica_prolog
+from logica_prolog import validar_numero_prolog
 
 # --- CONFIGURACIÓN DE PYGAME (INTERFAZ DE USUARIO) ---
 # Define las dimensiones de la ventana del juego (Ancho 1200, Alto 750)
@@ -59,6 +62,7 @@ COLOR_FIJO = (0, 0, 150)            # Azul oscuro para números iniciales
 COLOR_GRILLA_FINA = (150, 150, 150) # Gris claro para líneas finas
 COLOR_GRILLA_GRUESA = (0, 0, 0)     # Negro para líneas gruesas
 COLOR_SELECCION = (100, 200, 255)   # Azul claro para la celda seleccionada
+COLOR_ERROR = (255, 0, 0)           # Rojo para números inválidos
 
 # --- CLASE DE BOTÓN BÁSICA ---
 class Boton:
@@ -164,7 +168,7 @@ def dibujar_seleccion(pantalla, celda_seleccionada):
             4 # Grosor del borde
         )
 
-def dibujar_numeros(pantalla, matriz_actual, matriz_fija):
+def dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores):
     """ Renderiza los números contenidos en la matriz NumPy sobre la grilla. """
     fuente_numero = pygame.font.Font(None, 40)
 
@@ -175,7 +179,14 @@ def dibujar_numeros(pantalla, matriz_actual, matriz_fija):
             if numero != 0:
                 # Determina si el número es fijo (parte del puzle inicial)
                 es_fijo = matriz_fija[fila, columna] != 0
-                color_texto = COLOR_FIJO if es_fijo else NEGRO
+                es_error = matriz_errores[fila, columna] != 0
+                
+                if es_error:
+                    color_texto = COLOR_ERROR
+                elif es_fijo:
+                    color_texto = COLOR_FIJO
+                else:
+                    color_texto = NEGRO
                 
                 texto_superficie = fuente_numero.render(str(numero), True, color_texto)
                 
@@ -233,6 +244,10 @@ def ejecutar_juego():
     # Crea dos copias: una para los números fijos y otra para el estado actual del juego
     matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
     matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
+    
+    # Inicializa la matriz de errores (0 = válido, 1 = error)
+    matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+    
     print(f"Matriz de juego inicial cargada (NumPy):\n{matriz_actual}")
 
     # --- ESTADO DE SELECCIÓN ---
@@ -313,9 +328,24 @@ def ejecutar_juego():
                             
                             if numero is not None:
                                 try:
-                                    # Actualización Inmutable: Crea un nuevo estado del tablero
+                                    # 1. Prepara una matriz temporal con la celda vacía para validar
+                                    # Esto evita que el número choque consigo mismo si ya está puesto (o si se está reemplazando)
+                                    matriz_para_validar = colocar_numero(matriz_actual, fila, columna, 0)
+                                    
+                                    # 2. Validación en vivo con Prolog usando la matriz temporal
+                                    if numero != 0:
+                                        es_valido = validar_numero_prolog(matriz_para_validar, fila, columna, numero)
+                                        es_error = not es_valido
+                                    else:
+                                        es_error = False
+                                    
+                                    # 3. Actualización Inmutable: Aplica el cambio real al tablero
                                     matriz_actual = colocar_numero(matriz_actual, fila, columna, numero)
-                                    # print(f"Número {numero} colocado en ({fila}, {columna})")
+                                    
+                                    # 4. Actualiza la matriz de errores
+                                    matriz_errores = actualizar_errores(matriz_errores, fila, columna, es_error)
+                                    
+                                    # print(f"Número {numero} colocado en ({fila}, {columna}). Error: {es_error}")
                                 except ValueError as e:
                                     print(f"Error al colocar número: {e}")
 
@@ -362,7 +392,7 @@ def ejecutar_juego():
             # Dibuja el Tablero de Sudoku y los números
             dibujar_grilla(pantalla)
             dibujar_seleccion(pantalla, celda_seleccionada)
-            dibujar_numeros(pantalla, matriz_actual, matriz_fija)
+            dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
 
         # 5. Actualiza la pantalla para mostrar todos los cambios renderizados
         pygame.display.flip()
