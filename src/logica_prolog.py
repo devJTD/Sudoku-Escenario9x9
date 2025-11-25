@@ -60,8 +60,90 @@ def lista_a_matriz_numpy(lista_de_listas: list, tipo_matriz) -> np.ndarray:
     """Convierte una lista de listas de Python a una matriz de NumPy con el tipo de dato especificado."""
     return np.array(lista_de_listas, dtype=tipo_matriz)
 
+# --- Funciones de Validación de Sudoku ---
+
+def configurar_reglas_sudoku_validacion():
+    """
+    Define las reglas de Prolog para validar movimientos en Sudoku.
+    Estas reglas verifican si un número puede colocarse en una posición específica.
+    """
+    
+    # Regla: Verificar si un número NO está en una fila específica
+    motor_prolog.assertz("""
+        valido_en_fila(Matriz, Fila, Numero) :-
+            nth0(Fila, Matriz, FilaLista),
+            \\+ member(Numero, FilaLista)
+    """)
+    
+    # Regla: Verificar si un número NO está en una columna específica
+    motor_prolog.assertz("""
+        valido_en_columna(Matriz, Columna, Numero) :-
+            findall(Elem, (member(Fila, Matriz), nth0(Columna, Fila, Elem)), ColumnaLista),
+            \\+ member(Numero, ColumnaLista)
+    """)
+    
+    # Regla: Verificar si un número NO está en el bloque 3x3
+    motor_prolog.assertz("""
+        valido_en_bloque(Matriz, Fila, Columna, Numero) :-
+            FilaBloque is Fila // 3,
+            ColumnaBloque is Columna // 3,
+            FilaInicio is FilaBloque * 3,
+            ColumnaInicio is ColumnaBloque * 3,
+            findall(Elem,
+                (between(0, 2, I),
+                 between(0, 2, J),
+                 FilaActual is FilaInicio + I,
+                 ColumnaActual is ColumnaInicio + J,
+                 nth0(FilaActual, Matriz, FilaLista),
+                 nth0(ColumnaActual, FilaLista, Elem)),
+                BloqueLista),
+            \\+ member(Numero, BloqueLista)
+    """)
+    
+    # Regla: Combina las tres validaciones
+    motor_prolog.assertz("""
+        es_movimiento_valido(Matriz, Fila, Columna, Numero) :-
+            valido_en_fila(Matriz, Fila, Numero),
+            valido_en_columna(Matriz, Columna, Numero),
+            valido_en_bloque(Matriz, Fila, Columna, Numero)
+    """)
+    
+    print("Reglas de validación de Sudoku cargadas en Prolog.")
+
+def validar_numero_prolog(matriz, fila, col, num):
+    """
+    Interfaz Python para validar si un número puede colocarse en una posición.
+    
+    Args:
+        matriz: Matriz NumPy 9x9 del tablero actual
+        fila: Índice de fila (0-8)
+        col: Índice de columna (0-8)
+        num: Número a validar (1-9)
+    
+    Returns:
+        bool: True si el movimiento es válido, False en caso contrario
+    """
+    try:
+        # Convierte la matriz NumPy a lista de listas para Prolog
+        matriz_lista = matriz_numpy_a_lista(matriz)
+        
+        # Construye la consulta Prolog
+        consulta = f"es_movimiento_valido({matriz_lista}, {fila}, {col}, {num})"
+        
+        # Ejecuta la consulta
+        resultado = list(motor_prolog.query(consulta))
+        
+        # Si hay resultados, el movimiento es válido
+        return len(resultado) > 0
+        
+    except Exception as e:
+        print(f"Error en validación Prolog: {e}")
+        # En caso de error, retorna False por seguridad
+        return False
+
 # Configura las reglas inmediatamente al cargar el módulo
 configurar_reglas_sudoku()
+configurar_reglas_sudoku_validacion()
 
 # Ejecuta la prueba de conexión inmediatamente al cargar el módulo
 probar_conexion_prolog()

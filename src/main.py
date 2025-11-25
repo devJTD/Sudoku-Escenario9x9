@@ -207,8 +207,8 @@ def ejecutar_juego():
 
 
     # 5. Carga y Preparación de Datos (Matriz de Sudoku)
-    ruta_datos = 'datos/sudokus.csv'
-    matriz_inicial = cargar_y_limpiar_datos(ruta_datos)
+    # Genera un tablero de Sudoku programáticamente
+    matriz_inicial = cargar_y_limpiar_datos()
     
     if matriz_inicial is None:
         pygame.quit()
