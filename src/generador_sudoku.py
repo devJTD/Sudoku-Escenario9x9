@@ -214,4 +214,4 @@ def generar_sudoku(dificultad='medio'):
     # Crea el puzzle removiendo números
     puzzle = crear_puzzle(tablero_completo, dificultad)
     
-    return puzzle
+    return puzzle, tablero_completo

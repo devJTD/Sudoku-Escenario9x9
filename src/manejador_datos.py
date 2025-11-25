@@ -13,7 +13,7 @@ def cargar_y_limpiar_datos(ruta_archivo=None, dificultad='medio'):
         dificultad: Nivel de dificultad ('facil', 'medio', 'dificil')
     
     Retorna:
-        Matriz de Sudoku como un objeto NumPy 9x9.
+        Tuple (Matriz Inicial, Matriz Solución) como objetos NumPy 9x9.
     """
     print(f"Generando tablero de Sudoku con dificultad: {dificultad}")
     
@@ -33,18 +33,22 @@ def cargar_y_limpiar_datos(ruta_archivo=None, dificultad='medio'):
             df_tableros['matriz_limpia'] = df_tableros['cadena_puzzle'].map(cadena_a_matriz)
             matriz_inicial = df_tableros['matriz_limpia'].iloc[0]
             print("Tablero cargado desde archivo CSV.")
-            return matriz_inicial
+            
+            # NOTA: Para CSV, no tenemos la solución pre-calculada fácilmente sin resolverlo.
+            # Como el usuario dijo que ignoráramos CSV, retornamos None como solución por ahora
+            # o podríamos resolverlo aquí si fuera necesario.
+            return matriz_inicial, None
             
         except (FileNotFoundError, KeyError, Exception) as e:
             print(f"No se pudo cargar desde archivo: {e}")
             print("Generando tablero programáticamente...")
     
     # Genera un nuevo tablero usando el generador
-    matriz_inicial = generar_sudoku(dificultad)
+    matriz_inicial, matriz_solucion = generar_sudoku(dificultad)
     
     if matriz_inicial is None:
         print("ERROR: No se pudo generar el tablero de Sudoku.")
-        return None
+        return None, None
     
     print("Tablero generado exitosamente.")
-    return matriz_inicial
+    return matriz_inicial, matriz_solucion

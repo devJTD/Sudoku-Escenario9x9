@@ -3,6 +3,7 @@
 import pygame
 import sys
 import numpy as np
+import random
 
 # Importa módulos propios de la lógica de datos y el núcleo del juego
 from manejador_datos import cargar_y_limpiar_datos
@@ -46,6 +47,8 @@ COLOR_NUEVO_BASE = (60, 180, 100)       # Verde
 COLOR_NUEVO_HOVER = (90, 210, 130)
 COLOR_MENU_BASE = (100, 100, 200)       # Azul/Violeta
 COLOR_MENU_HOVER = (130, 130, 230)
+COLOR_PISTA_BASE = (147, 112, 219)      # Violeta Medio
+COLOR_PISTA_HOVER = (186, 85, 211)      # Orquídea Medio
 
 # --- ESTADOS DE JUEGO ---
 ESTADO_MENU = "MENU"
@@ -265,7 +268,7 @@ def ejecutar_juego():
 
     # 5. Carga y Preparación de Datos (Matriz de Sudoku)
     # Genera un tablero de Sudoku programáticamente
-    matriz_inicial = cargar_y_limpiar_datos()
+    matriz_inicial, matriz_solucion = cargar_y_limpiar_datos()
     
     if matriz_inicial is None:
         pygame.quit()
@@ -317,14 +320,48 @@ def ejecutar_juego():
         print("Tablero reiniciado.")
 
     def accion_nuevo_juego():
-        nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial
-        nueva_matriz = cargar_y_limpiar_datos()
+        nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial, matriz_solucion
+        nueva_matriz, nueva_solucion = cargar_y_limpiar_datos()
         if nueva_matriz is not None:
             matriz_inicial = nueva_matriz
+            matriz_solucion = nueva_solucion
             matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
             matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
             matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
             print("Nuevo juego generado.")
+
+    def accion_pista():
+        nonlocal matriz_actual, matriz_solucion, matriz_errores
+        
+        # Si no hay solución disponible (ej. CSV antiguo), no hacer nada
+        if matriz_solucion is None:
+            print("No hay solución disponible para dar pistas.")
+            return
+
+        # Encuentra todas las celdas vacías (valor 0)
+        celdas_vacias = []
+        for f in range(9):
+            for c in range(9):
+                if matriz_actual[f, c] == 0:
+                    celdas_vacias.append((f, c))
+        
+        if not celdas_vacias:
+            print("No hay celdas vacías para dar pista.")
+            return
+            
+        # Selecciona una celda aleatoria
+        fila, col = random.choice(celdas_vacias)
+        
+        # Obtiene el valor correcto de la solución
+        valor_correcto = matriz_solucion[fila, col]
+        
+        # Coloca el número en el tablero actual
+        matriz_actual[fila, col] = valor_correcto
+        
+        # Asegura que no marque error (limpia error si había)
+        matriz_errores[fila, col] = 0
+        
+        print(f"Pista dada en ({fila}, {col}): {valor_correcto}")
 
     def accion_volver_menu():
         global ESTADO_ACTUAL
@@ -350,13 +387,19 @@ def ejecutar_juego():
         "Nuevo Juego", COLOR_NUEVO_BASE, COLOR_NUEVO_HOVER, accion_nuevo_juego
     )
 
+    boton_pista = Boton(
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 2,
+        ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO,
+        "Pista", COLOR_PISTA_BASE, COLOR_PISTA_HOVER, accion_pista
+    )
+
     boton_menu_juego = Boton(
-        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 2, 
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 3, 
         ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, 
         "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu
     )
 
-    botones_juego = [boton_reiniciar, boton_nuevo, boton_menu_juego]
+    botones_juego = [boton_reiniciar, boton_nuevo, boton_pista, boton_menu_juego]
 
     # --- BUCLE PRINCIPAL DEL JUEGO (Pygame Loop) ---
     global ESTADO_ACTUAL
