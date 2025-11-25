@@ -92,3 +92,11 @@ def es_grupo_valido(grupo: np.ndarray) -> bool:
     """Verifica si un grupo de 9 números contiene todos los dígitos del 1 al 9."""
     # Ordena el grupo y verifica si es igual a [1, 2, ..., 9]
     return np.array_equal(np.sort(grupo), np.arange(1, 10))
+
+# Función Pura: Resolver Tablero
+def resolver_tablero(matriz_solucion: np.ndarray) -> np.ndarray:
+    """
+    Devuelve una copia de la matriz solución.
+    Esta función actúa como el 'resolver' lógico, entregando el estado final deseado.
+    """
+    return matriz_solucion.copy()

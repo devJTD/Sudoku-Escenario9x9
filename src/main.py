@@ -7,7 +7,7 @@ import random
 
 # Importa módulos propios de la lógica de datos y el núcleo del juego
 from manejador_datos import cargar_y_limpiar_datos
-from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores, es_tablero_completo, es_tablero_valido
+from logica_nucleo import TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores, es_tablero_completo, es_tablero_valido, resolver_tablero
 
 import logica_prolog
 from logica_prolog import validar_numero_prolog
@@ -49,6 +49,8 @@ COLOR_MENU_BASE = (100, 100, 200)       # Azul/Violeta
 COLOR_MENU_HOVER = (130, 130, 230)
 COLOR_PISTA_BASE = (147, 112, 219)      # Violeta Medio
 COLOR_PISTA_HOVER = (186, 85, 211)      # Orquídea Medio
+COLOR_RESOLVER_BASE = (255, 140, 0)     # Naranja Oscuro
+COLOR_RESOLVER_HOVER = (255, 165, 0)    # Naranja
 
 # --- ESTADOS DE JUEGO ---
 ESTADO_MENU = "MENU"
@@ -363,6 +365,15 @@ def ejecutar_juego():
         
         print(f"Pista dada en ({fila}, {col}): {valor_correcto}")
 
+    def accion_resolver():
+        nonlocal matriz_actual, matriz_solucion, matriz_errores
+        if matriz_solucion is not None:
+            matriz_actual = resolver_tablero(matriz_solucion)
+            matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+            print("Tablero resuelto automáticamente.")
+        else:
+            print("No hay solución disponible para resolver.")
+
     def accion_volver_menu():
         global ESTADO_ACTUAL
         ESTADO_ACTUAL = ESTADO_MENU
@@ -393,13 +404,19 @@ def ejecutar_juego():
         "Pista", COLOR_PISTA_BASE, COLOR_PISTA_HOVER, accion_pista
     )
 
+    boton_resolver = Boton(
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 3,
+        ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO,
+        "Resolver", COLOR_RESOLVER_BASE, COLOR_RESOLVER_HOVER, accion_resolver
+    )
+
     boton_menu_juego = Boton(
-        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 3, 
+        X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 4, 
         ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, 
         "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu
     )
 
-    botones_juego = [boton_reiniciar, boton_nuevo, boton_pista, boton_menu_juego]
+    botones_juego = [boton_reiniciar, boton_nuevo, boton_pista, boton_resolver, boton_menu_juego]
 
     # --- BUCLE PRINCIPAL DEL JUEGO (Pygame Loop) ---
     global ESTADO_ACTUAL
