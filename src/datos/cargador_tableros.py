@@ -8,8 +8,8 @@ def generar_tablero_nuevo(dificultad='medio'):
     matriz_inicial, matriz_solucion = generar_sudoku(dificultad)
     
     if matriz_inicial is None:
-        print("ERROR: No se pudo generar el tablero de Sudoku.")
+        print("[ERROR] No se pudo generar el tablero de Sudoku")
         return None, None
     
-    print("Tablero generado exitosamente.")
+    print("[SUCCESS] Tablero cargado y listo para jugar")
     return matriz_inicial, matriz_solucion

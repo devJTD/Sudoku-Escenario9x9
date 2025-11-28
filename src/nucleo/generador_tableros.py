@@ -66,8 +66,9 @@ def resolver_sudoku(matriz):
 
 def generar_tablero_completo():
     # Genera un tablero de Sudoku 9x9 completo y válido usando backtracking
-    print("Generando tablero de Sudoku completo...")
-    
+    print("\n" + "-"*60)
+    print("[TABLERO] Iniciando generación de tablero completo...")
+    print("-"*60)
     # Crea una matriz vacía
     matriz = np.zeros((9, 9), dtype=TIPO_MATRIZ)
     
@@ -115,10 +116,10 @@ def generar_tablero_completo():
     
     # Inicia el llenado desde la posición (0, 0)
     if llenar_tablero(0, 0):
-        print("Tablero completo generado exitosamente.")
+        print("[SUCCESS] Tablero completo generado exitosamente")
         return matriz
     else:
-        print("ERROR: No se pudo generar el tablero.")
+        print("[ERROR] No se pudo generar el tablero")
         return None
 
 def crear_puzzle(tablero_completo, dificultad='medio'):
@@ -132,14 +133,15 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
     
     # Obtiene el rango de números a remover
     if dificultad not in niveles_dificultad:
-        print(f"Advertencia: Dificultad '{dificultad}' no reconocida. Usando 'medio'.")
+        print(f"[WARNING] Dificultad '{dificultad}' no reconocida. Usando 'medio'")
         dificultad = 'medio'
     
     # Calcula cuántos números remover
     min_remover, max_remover = niveles_dificultad[dificultad]
     num_remover = random.randint(min_remover, max_remover)
     
-    print(f"Creando puzzle de dificultad '{dificultad}' (removiendo {num_remover} números)...")
+    print(f"[TABLERO] Creando puzzle - Dificultad: {dificultad.upper()}")
+    print(f"[TABLERO] Números a remover: {num_remover}")
     
     # INMUTABILIDAD: Crea una copia para no modificar el tablero completo original
     puzzle = tablero_completo.copy()
@@ -162,7 +164,7 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
         puzzle[fila, col] = 0
         removidos += 1
     
-    print(f"Puzzle creado con {removidos} números removidos.")
+    print(f"[SUCCESS] Puzzle creado con {removidos} números removidos")
     return puzzle
 
 def generar_sudoku(dificultad='medio'):
@@ -172,10 +174,11 @@ def generar_sudoku(dificultad='medio'):
 
     # Muestra la solución en consola para depuración
     if tablero_completo is not None:
-        print("\n" + "="*40)
-        print("TABLERO COMPLETO (SOLUCIÓN):")
+        print("\n" + "="*60)
+        print("[DEBUG] TABLERO COMPLETO (SOLUCIÓN):")
+        print("="*60)
         print(tablero_completo)
-        print("="*40 + "\n")
+        print("="*60 + "\n")
     
     # Si falla la generación, retorna None
     if tablero_completo is None:

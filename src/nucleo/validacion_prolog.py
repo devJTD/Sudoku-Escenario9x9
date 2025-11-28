@@ -4,6 +4,7 @@ from pyswip import Prolog
 import numpy as np
 
 # Inicialización del motor de Prolog
+print("[PROLOG] Inicializando motor de Prolog...")
 motor_prolog = Prolog()
 
 # --- Funciones de Conversión de Datos ---
@@ -60,7 +61,7 @@ def configurar_reglas_sudoku_validacion():
             valido_en_bloque(Matriz, Fila, Columna, Numero)
     """)
 
-    print("Reglas de validación de Sudoku cargadas en Prolog.")
+    print("[PROLOG] Reglas de validación de Sudoku cargadas correctamente")
 
 def validar_numero_prolog(matriz, fila, col, num):
     # Valida si un número puede colocarse en una posición usando Prolog
@@ -79,7 +80,7 @@ def validar_numero_prolog(matriz, fila, col, num):
         
     # Captura errores de validación
     except Exception as e:
-        print(f"Error en validación Prolog: {e}")
+        print(f"[ERROR] Validación Prolog falló: {e}")
         # En caso de error, retorna False por seguridad
         return False
 

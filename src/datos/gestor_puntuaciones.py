@@ -24,11 +24,11 @@ def guardar_puntuacion_jugador(nombre, tiempo, errores, pistas, puntaje, estado)
                     # Archivo vacío
                     pass
         except Exception as e:
-            print(f"Error al leer archivo: {e}")
+            print(f"[ERROR] Error al leer archivo: {e}")
 
     # Migra el archivo al nuevo formato si es necesario
     if header_actual and 'Puntaje' not in header_actual:
-        print("Migrando archivo de puntuaciones al nuevo formato...")
+        print("[DATOS] Migrando archivo de puntuaciones al nuevo formato...")
         filas_migradas = []
         # Actualiza cada fila al nuevo formato
         for fila in filas_existentes:
@@ -48,9 +48,9 @@ def guardar_puntuacion_jugador(nombre, tiempo, errores, pistas, puntaje, estado)
             writer.writerow(nuevo_header)
             writer.writerows(filas_existentes)
             writer.writerow([nombre, f"{tiempo:.2f}", errores, pistas, puntaje, estado, datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
-        print("Puntuación guardada.")
+        print(f"[DATOS] Puntuación guardada - Usuario: {nombre} | Puntaje: {puntaje}")
     except Exception as e:
-        print(f"Error al guardar puntuación: {e}")
+        print(f"[ERROR] Error al guardar puntuación: {e}")
 
 def cargar_puntuaciones_jugador(nombre_filtro=None):
     # Carga las puntuaciones del CSV, opcionalmente filtradas por jugador
@@ -71,5 +71,5 @@ def cargar_puntuaciones_jugador(nombre_filtro=None):
                         # Incluye todas las puntuaciones
                         puntuaciones.append(row)
         except Exception as e:
-            print(f"Error al cargar puntuaciones: {e}")
+            print(f"[ERROR] Error al cargar puntuaciones: {e}")
     return puntuaciones
