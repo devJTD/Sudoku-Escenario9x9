@@ -28,6 +28,8 @@ def es_valido_python(matriz, fila, col, num):
 
 def resolver_sudoku(matriz):
     # Resuelve un tablero de Sudoku usando backtracking
+    # NOTA: Esta función MODIFICA la matriz de entrada (no es pura)
+    # Se usa para generación interna, no para lógica de juego del usuario
     # Busca la primera celda vacía
     for fila in range(9):
         for col in range(9):
@@ -37,14 +39,14 @@ def resolver_sudoku(matriz):
                 for num in range(1, 10):
                     # Valida con Prolog primero
                     if validar_numero_prolog(matriz, fila, col, num):
-                        # Coloca el número
+                        # MUTACIÓN CONTROLADA: Modifica la matriz para backtracking
                         matriz[fila, col] = num
                         
                         # Recursivamente intenta resolver el resto
                         if resolver_sudoku(matriz):
                             return True
                         
-                        # Si no funciona, retrocede (backtracking)
+                        # BACKTRACKING: Deshace el cambio si no funcionó
                         matriz[fila, col] = 0
                     # Si Prolog falla, usa validación Python
                     elif es_valido_python(matriz, fila, col, num):
@@ -53,6 +55,7 @@ def resolver_sudoku(matriz):
                         if resolver_sudoku(matriz):
                             return True
                         
+                        # BACKTRACKING: Restaura el estado anterior
                         matriz[fila, col] = 0
                 
                 # Si ningún número funciona, retorna False
@@ -69,6 +72,8 @@ def generar_tablero_completo():
     matriz = np.zeros((9, 9), dtype=TIPO_MATRIZ)
     
     # Función auxiliar para llenar el tablero recursivamente
+    # NOTA: Esta función interna MODIFICA 'matriz' (closure sobre variable externa)
+    # Esto es aceptable porque es parte del proceso de generación interno
     def llenar_tablero(fila, col):
         # Si llegamos al final, terminamos
         if fila == 9:
@@ -86,13 +91,14 @@ def generar_tablero_completo():
         for num in numeros:
             # Valida con Prolog primero
             if validar_numero_prolog(matriz, fila, col, num):
+                # MUTACIÓN CONTROLADA: Modifica la matriz durante la generación
                 matriz[fila, col] = num
                 
                 # Recursivamente llena el resto del tablero
                 if llenar_tablero(siguiente_fila, siguiente_col):
                     return True
                 
-                # Backtracking
+                # BACKTRACKING: Deshace el cambio si falla
                 matriz[fila, col] = 0
             # Fallback a validación Python
             elif es_valido_python(matriz, fila, col, num):
@@ -101,6 +107,7 @@ def generar_tablero_completo():
                 if llenar_tablero(siguiente_fila, siguiente_col):
                     return True
                 
+                # BACKTRACKING: Restaura el estado
                 matriz[fila, col] = 0
         
         # Si ningún número funciona, retrocede
@@ -134,7 +141,7 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
     
     print(f"Creando puzzle de dificultad '{dificultad}' (removiendo {num_remover} números)...")
     
-    # Crea una copia del tablero completo
+    # INMUTABILIDAD: Crea una copia para no modificar el tablero completo original
     puzzle = tablero_completo.copy()
     
     # Crea una lista de todas las posiciones (81 celdas) y las mezcla

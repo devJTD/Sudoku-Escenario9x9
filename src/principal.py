@@ -56,7 +56,8 @@ def ejecutar_juego():
     pistas_contador = 0
     estadisticas_partida_actual = {}
     
-    # Crea copias de las matrices para el juego
+    # INMUTABILIDAD: Crea copias de las matrices para el juego
+    # Cada copia es independiente, evitando mutaciones accidentales del estado original
     matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
     matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
     matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
@@ -85,6 +86,7 @@ def ejecutar_juego():
     def accion_reiniciar():
         # Reinicia el tablero actual al estado inicial
         nonlocal matriz_actual, matriz_errores, tiempo_inicio, errores_contador, pistas_contador
+        # INMUTABILIDAD: Crea nuevas copias en lugar de modificar las existentes
         matriz_actual = matriz_fija.copy().astype(TIPO_MATRIZ)
         matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
         tiempo_inicio = time.time()
@@ -99,8 +101,10 @@ def ejecutar_juego():
         nueva_matriz, nueva_solucion = generar_tablero_nuevo()
         # Si la generación fue exitosa, actualiza todas las matrices
         if nueva_matriz is not None:
+            # INMUTABILIDAD: Asigna nuevas matrices en lugar de modificar las existentes
             matriz_inicial = nueva_matriz
             matriz_solucion = nueva_solucion
+            # Crea copias independientes para cada propósito
             matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
             matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
             matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
@@ -185,6 +189,7 @@ def ejecutar_juego():
                 for boton in botones_juego: boton.manejar_evento(evento)
                 # Detecta clic del mouse para seleccionar celda
                 if evento.type == pygame.MOUSEBUTTONDOWN:
+                    # FUNCIÓN PURA: obtener_coordenadas_matriz no modifica evento.pos
                     celda_seleccionada = obtener_coordenadas_matriz(evento.pos, OFFSET_GRILLA_X, OFFSET_GRILLA_Y, TAMANO_CELDA)
                 # Detecta teclas presionadas si hay una celda seleccionada
                 if evento.type == pygame.KEYDOWN and celda_seleccionada:
@@ -208,6 +213,7 @@ def ejecutar_juego():
                         if numero is not None:
                             try:
                                 # Valida el número antes de colocarlo
+                                # FUNCIÓN PURA: colocar_numero retorna NUEVA matriz, no modifica matriz_actual
                                 matriz_para_validar = colocar_numero(matriz_actual, fila, columna, 0)
                                 if numero != 0:
                                     es_valido = validar_numero_prolog(matriz_para_validar, fila, columna, numero)
@@ -216,8 +222,10 @@ def ejecutar_juego():
                                     # Borrar no es un error
                                     es_error = False
                                 
-                                # Coloca el número en la matriz
+                                # INMUTABILIDAD: Cada llamada retorna una NUEVA matriz
+                                # matriz_actual original nunca se modifica, se reemplaza por una nueva
                                 matriz_actual = colocar_numero(matriz_actual, fila, columna, numero)
+                                # FUNCIÓN PURA: actualizar_errores retorna nueva matriz de errores
                                 matriz_errores = actualizar_errores(matriz_errores, fila, columna, es_error)
                                 # Si es un error, incrementa el contador
                                 if es_error:
