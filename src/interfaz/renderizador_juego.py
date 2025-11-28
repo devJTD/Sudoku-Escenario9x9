@@ -3,47 +3,65 @@ import pygame
 from interfaz.constantes_visuales import *
 
 def dibujar_grilla(pantalla):
+    # Dibuja la grilla del tablero con líneas finas y gruesas
+    # Dibuja el fondo blanco
     pygame.draw.rect(pantalla, BLANCO, (OFFSET_GRILLA_X, OFFSET_GRILLA_Y, TAMANO_GRILLA, TAMANO_GRILLA))
+    # Dibuja las líneas horizontales y verticales
     for i in range(10): 
         grosor_linea = GROSOR_LINEA_GRUESA if i % 3 == 0 else GROSOR_LINEA_FINA
         color_linea = COLOR_GRILLA_GRUESA if i % 3 == 0 else COLOR_GRILLA_FINA
+        # Líneas verticales
         posicion = OFFSET_GRILLA_X + i * TAMANO_CELDA
         pygame.draw.line(pantalla, color_linea, (posicion, OFFSET_GRILLA_Y), (posicion, OFFSET_GRILLA_Y + TAMANO_GRILLA), grosor_linea)
+        # Líneas horizontales
         posicion = OFFSET_GRILLA_Y + i * TAMANO_CELDA
         pygame.draw.line(pantalla, color_linea, (OFFSET_GRILLA_X, posicion), (OFFSET_GRILLA_X + TAMANO_GRILLA, posicion), grosor_linea)
 
 def dibujar_seleccion(pantalla, celda_seleccionada):
+    # Dibuja un borde alrededor de la celda seleccionada
     if celda_seleccionada:
         fila, columna = celda_seleccionada
+        # Calcula la posición de la celda
         x = OFFSET_GRILLA_X + columna * TAMANO_CELDA
         y = OFFSET_GRILLA_Y + fila * TAMANO_CELDA
+        # Dibuja el borde de selección
         pygame.draw.rect(pantalla, COLOR_SELECCION, (x, y, TAMANO_CELDA, TAMANO_CELDA), 4)
 
 def dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores):
+    # Dibuja los números del tablero con colores según su estado (fijo, error, normal)
     fuente_numero = pygame.font.Font(None, 40)
+    # Recorre todas las celdas del tablero
     for fila in range(9):
         for columna in range(9):
             numero = matriz_actual[fila, columna]
+            # Solo dibuja si la celda no está vacía
             if numero != 0:
+                # Determina el color según el estado
                 es_fijo = matriz_fija[fila, columna] != 0
                 es_error = matriz_errores[fila, columna] != 0
                 color_texto = COLOR_ERROR if es_error else (COLOR_FIJO if es_fijo else NEGRO)
+                # Renderiza el número
                 texto_superficie = fuente_numero.render(str(numero), True, color_texto)
+                # Calcula la posición centrada
                 pos_x = OFFSET_GRILLA_X + columna * TAMANO_CELDA + (TAMANO_CELDA - texto_superficie.get_width()) // 2
                 pos_y = OFFSET_GRILLA_Y + fila * TAMANO_CELDA + (TAMANO_CELDA - texto_superficie.get_height()) // 2
                 pantalla.blit(texto_superficie, (pos_x, pos_y))
 
 def dibujar_victoria(pantalla, estadisticas=None):
+    # Muestra la pantalla de victoria con estadísticas de la partida
+    # Crea una capa semi-transparente
     superficie_transparente = pygame.Surface((ANCHO_PANTALLA, ALTO_PANTALLA))
     superficie_transparente.set_alpha(200)
     superficie_transparente.fill(NEGRO)
     pantalla.blit(superficie_transparente, (0, 0))
     
+    # Dibuja el título de victoria
     fuente_victoria = pygame.font.Font(None, 100)
     texto_victoria = fuente_victoria.render("¡FELICIDADES!", True, (0, 255, 0))
     rect_victoria = texto_victoria.get_rect(center=(ANCHO_PANTALLA // 2, ALTO_PANTALLA // 2 - 100))
     pantalla.blit(texto_victoria, rect_victoria)
 
+    # Muestra las estadísticas si están disponibles
     if estadisticas:
         fuente_stats = pygame.font.Font(None, 40)
         y_offset = ALTO_PANTALLA // 2
@@ -52,17 +70,20 @@ def dibujar_victoria(pantalla, estadisticas=None):
             f"Errores: {estadisticas['errores']}",
             f"Pistas: {estadisticas['pistas']}"
         ]
+        # Dibuja cada línea de estadísticas
         for texto in textos:
             surf = fuente_stats.render(texto, True, BLANCO)
             rect = surf.get_rect(center=(ANCHO_PANTALLA // 2, y_offset))
             pantalla.blit(surf, rect)
             y_offset += 40
 
+    # Dibuja la instrucción para continuar
     texto_instruccion = pygame.font.Font(None, 30).render("Haz clic para volver al tablero", True, (200, 200, 200))
     rect_inst = texto_instruccion.get_rect(center=(ANCHO_PANTALLA // 2, ALTO_PANTALLA - 50))
     pantalla.blit(texto_instruccion, rect_inst)
 
 def dibujar_derrota(pantalla, estadisticas=None):
+    # Muestra la pantalla de derrota con estadísticas de la partida
     superficie_transparente = pygame.Surface((ANCHO_PANTALLA, ALTO_PANTALLA))
     superficie_transparente.set_alpha(200)
     superficie_transparente.fill(NEGRO)
@@ -101,7 +122,7 @@ def dibujar_tabla_puntuaciones(pantalla, puntuaciones, nombre_usuario):
         msg = fuente_msg.render("No hay puntuaciones registradas.", True, BLANCO)
         pantalla.blit(msg, (ANCHO_PANTALLA // 2 - msg.get_width() // 2, 200))
     else:
-        # Cabecera
+        # Muestra tabla de puntuaciones
         y = 150
         fuente_fila = pygame.font.Font(None, 30)
         # Ajustamos el espaciado para las nuevas columnas
@@ -110,9 +131,9 @@ def dibujar_tabla_puntuaciones(pantalla, puntuaciones, nombre_usuario):
         pantalla.blit(surf_cab, (ANCHO_PANTALLA // 2 - 350, y))
         y += 40
         
-        # Filas (mostrar ultimas 10)
+        # Muestra las últimas 10 partidas
         for p in puntuaciones[-10:]:
-            # Manejo seguro de claves para compatibilidad
+            # Obtiene datos de cada puntuación con valores por defecto
             fecha = p.get('Fecha', 'N/A')
             tiempo = p.get('Tiempo', '0')
             errores = p.get('Errores', '0')
@@ -120,11 +141,12 @@ def dibujar_tabla_puntuaciones(pantalla, puntuaciones, nombre_usuario):
             puntaje = p.get('Puntaje', '0')
             estado = p.get('Estado', 'N/A')
             
+            # Formatea y dibuja la fila
             fila_str = f"{fecha:<19} {tiempo:<8} {errores:<5} {pistas:<6} {puntaje:<8} {estado:<10}"
             surf_fila = fuente_fila.render(fila_str, True, BLANCO)
             pantalla.blit(surf_fila, (ANCHO_PANTALLA // 2 - 350, y))
             y += 30
 
-    # Instrucción para volver
+    # Instrucción para volver al menú
     texto_volver = pygame.font.Font(None, 30).render("Presiona ESC o clic para volver", True, (200, 200, 200))
     pantalla.blit(texto_volver, (ANCHO_PANTALLA // 2 - texto_volver.get_width() // 2, ALTO_PANTALLA - 50))

@@ -6,53 +6,36 @@ from nucleo.logica_sudoku import TIPO_MATRIZ
 from nucleo.validacion_prolog import validar_numero_prolog
 
 def es_valido_python(matriz, fila, col, num):
-    """
-    Validación en Python (fallback si Prolog falla).
-    Verifica si un número puede colocarse en una posición específica.
-    
-    Args:
-        matriz: Matriz NumPy 9x9 del tablero actual
-        fila: Índice de fila (0-8)
-        col: Índice de columna (0-8)
-        num: Número a validar (1-9)
-    
-    Returns:
-        bool: True si el movimiento es válido, False en caso contrario
-    """
-    # Verifica la fila
+    # Valida si un número puede colocarse en una posición (fallback de Prolog)
+    # Verifica fila
     if num in matriz[fila, :]:
         return False
     
-    # Verifica la columna
+    # Verifica columna
     if num in matriz[:, col]:
         return False
     
-    # Verifica el bloque 3x3
+    # Calcula el inicio del bloque 3x3
     fila_bloque = (fila // 3) * 3
     col_bloque = (col // 3) * 3
+    # Extrae el bloque 3x3 correspondiente
     bloque = matriz[fila_bloque:fila_bloque + 3, col_bloque:col_bloque + 3]
+    # Verifica el bloque 3x3
     if num in bloque:
         return False
     
     return True
 
 def resolver_sudoku(matriz):
-    """
-    Resuelve un tablero de Sudoku usando backtracking.
-    
-    Args:
-        matriz: Matriz NumPy 9x9 del tablero a resolver
-    
-    Returns:
-        bool: True si se resolvió exitosamente, False en caso contrario
-    """
-    # Busca la primera celda vacía (valor 0)
+    # Resuelve un tablero de Sudoku usando backtracking
+    # Busca la primera celda vacía
     for fila in range(9):
         for col in range(9):
+            # Si encuentra una celda vacía
             if matriz[fila, col] == 0:
                 # Intenta números del 1 al 9
                 for num in range(1, 10):
-                    # Primero intenta validar con Prolog
+                    # Valida con Prolog primero
                     if validar_numero_prolog(matriz, fila, col, num):
                         # Coloca el número
                         matriz[fila, col] = num
@@ -63,7 +46,7 @@ def resolver_sudoku(matriz):
                         
                         # Si no funciona, retrocede (backtracking)
                         matriz[fila, col] = 0
-                    # Si Prolog falla, usa validación Python como fallback
+                    # Si Prolog falla, usa validación Python
                     elif es_valido_python(matriz, fila, col, num):
                         matriz[fila, col] = num
                         
@@ -79,21 +62,15 @@ def resolver_sudoku(matriz):
     return True
 
 def generar_tablero_completo():
-    """
-    Genera un tablero de Sudoku 9x9 completo y válido.
-    Usa backtracking con números aleatorios para crear variedad.
-    
-    Returns:
-        np.ndarray: Matriz NumPy 9x9 con un tablero de Sudoku completo
-    """
+    # Genera un tablero de Sudoku 9x9 completo y válido usando backtracking
     print("Generando tablero de Sudoku completo...")
     
     # Crea una matriz vacía
     matriz = np.zeros((9, 9), dtype=TIPO_MATRIZ)
     
-    # Función auxiliar para llenar el tablero con backtracking
+    # Función auxiliar para llenar el tablero recursivamente
     def llenar_tablero(fila, col):
-        # Si llegamos al final del tablero, terminamos
+        # Si llegamos al final, terminamos
         if fila == 9:
             return True
         
@@ -101,7 +78,7 @@ def generar_tablero_completo():
         siguiente_fila = fila if col < 8 else fila + 1
         siguiente_col = (col + 1) % 9
         
-        # Crea una lista de números del 1 al 9 en orden aleatorio
+        # Crea una lista de números aleatorios del 1 al 9
         numeros = list(range(1, 10))
         random.shuffle(numeros)
         
@@ -138,17 +115,8 @@ def generar_tablero_completo():
         return None
 
 def crear_puzzle(tablero_completo, dificultad='medio'):
-    """
-    Crea un puzzle de Sudoku removiendo números de un tablero completo.
-    
-    Args:
-        tablero_completo: Matriz NumPy 9x9 con un tablero completo
-        dificultad: Nivel de dificultad ('facil', 'medio', 'dificil')
-    
-    Returns:
-        np.ndarray: Matriz NumPy 9x9 con el puzzle (algunos números removidos)
-    """
-    # Define cuántos números remover según la dificultad
+    # Crea un puzzle removiendo números de un tablero completo según la dificultad
+    # Define cuántos números remover
     niveles_dificultad = {
         'facil': (35, 40),    # 35-40 números removidos
         'medio': (45, 50),    # 45-50 números removidos
@@ -160,6 +128,7 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
         print(f"Advertencia: Dificultad '{dificultad}' no reconocida. Usando 'medio'.")
         dificultad = 'medio'
     
+    # Calcula cuántos números remover
     min_remover, max_remover = niveles_dificultad[dificultad]
     num_remover = random.randint(min_remover, max_remover)
     
@@ -168,17 +137,18 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
     # Crea una copia del tablero completo
     puzzle = tablero_completo.copy()
     
-    # Crea una lista de todas las posiciones (81 celdas)
+    # Crea una lista de todas las posiciones (81 celdas) y las mezcla
     posiciones = [(fila, col) for fila in range(9) for col in range(9)]
     random.shuffle(posiciones)
     
     # Remueve números de posiciones aleatorias
     removidos = 0
     for fila, col in posiciones:
+        # Si ya se removieron suficientes números, termina
         if removidos >= num_remover:
             break
         
-        # Guarda el valor original
+        # Guarda el valor original (no usado actualmente)
         valor_original = puzzle[fila, col]
         
         # Remueve el número (lo pone en 0)
@@ -189,29 +159,23 @@ def crear_puzzle(tablero_completo, dificultad='medio'):
     return puzzle
 
 def generar_sudoku(dificultad='medio'):
-    """
-    Función principal para generar un puzzle de Sudoku completo.
-    
-    Args:
-        dificultad: Nivel de dificultad ('facil', 'medio', 'dificil')
-    
-    Returns:
-        np.ndarray: Matriz NumPy 9x9 con el puzzle de Sudoku
-    """
+    # Genera un puzzle de Sudoku completo con la dificultad especificada
     # Genera un tablero completo
     tablero_completo = generar_tablero_completo()
 
-    # Muestra la matriz completa en consola (Solución)
+    # Muestra la solución en consola para depuración
     if tablero_completo is not None:
         print("\n" + "="*40)
         print("TABLERO COMPLETO (SOLUCIÓN):")
         print(tablero_completo)
         print("="*40 + "\n")
     
+    # Si falla la generación, retorna None
     if tablero_completo is None:
         return None
     
     # Crea el puzzle removiendo números
     puzzle = crear_puzzle(tablero_completo, dificultad)
     
+    # Retorna el puzzle y la solución
     return puzzle, tablero_completo

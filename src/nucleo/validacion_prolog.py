@@ -7,21 +7,15 @@ import numpy as np
 motor_prolog = Prolog()
 
 def configurar_reglas_sudoku():
-    """
-    Define y carga las reglas básicas del Sudoku en el motor de Prolog.
-    Actualmente, carga reglas simples para probar la conectividad PySWIP.
-    """
-    # Predicados de prueba: es_amigo(Persona1, Persona2)
+    # Carga reglas básicas de Prolog para pruebas de conectividad
+    # Define relaciones de amistad para pruebas
     motor_prolog.assertz("es_amigo(juan, maria)")
     motor_prolog.assertz("es_amigo(juan, pedro)")
     
     print("Reglas básicas de Prolog cargadas.")
 
 def probar_conexion_prolog():
-    """
-    Verifica la comunicación entre Python (PySWIP) y el motor de Prolog.
-    Ejecuta una consulta simple para encontrar amigos de 'juan'.
-    """
+    # Verifica la comunicación entre Python y Prolog ejecutando una consulta simple
     print("\n--- Prueba de Conexión Prolog ---")
     
     try:
@@ -29,6 +23,7 @@ def probar_conexion_prolog():
         consulta = motor_prolog.query("es_amigo(juan, Amigo)")
         
         resultados = []
+        # Procesa cada resultado de la consulta
         for res in consulta:
             amigo = res["Amigo"]
     
@@ -38,6 +33,7 @@ def probar_conexion_prolog():
     
             resultados.append(amigo)
         
+        # Verifica si se obtuvieron resultados
         if resultados:
             print(f"Conexión exitosa. Amigos encontrados para Juan: {resultados}")
             return True
@@ -45,6 +41,7 @@ def probar_conexion_prolog():
             print("ERROR: La consulta a Prolog no retornó resultados. Revisa la instalación de SWI-Prolog y variables de entorno.")
             return False
             
+    # Captura errores de comunicación con Prolog
     except Exception as e:
         print(f"ERROR CRÍTICO en PySWIP/Prolog: {e}")
         print("Asegúrate que SWI-Prolog está instalado y accesible en la ruta del sistema.")
@@ -53,36 +50,32 @@ def probar_conexion_prolog():
 # --- Funciones de Conversión de Datos ---
 
 def matriz_numpy_a_lista(matriz_numpy: np.ndarray) -> list:
-    """Convierte la matriz de NumPy (9x9) a una lista de listas de Python nativo."""
+    # Convierte matriz NumPy (9x9) a lista de listas de Python
     return matriz_numpy.tolist()
 
 def lista_a_matriz_numpy(lista_de_listas: list, tipo_matriz) -> np.ndarray:
-    """Convierte una lista de listas de Python a una matriz de NumPy con el tipo de dato especificado."""
+    # Convierte lista de listas de Python a matriz NumPy
     return np.array(lista_de_listas, dtype=tipo_matriz)
 
 # --- Funciones de Validación de Sudoku ---
 
 def configurar_reglas_sudoku_validacion():
-    """
-    Define las reglas de Prolog para validar movimientos en Sudoku.
-    Estas reglas verifican si un número puede colocarse en una posición específica.
-    """
-    
-    # Regla: Verificar si un número NO está en una fila específica
+    # Define las reglas de Prolog para validar movimientos en Sudoku
+    # Regla: Verifica si un número NO está en una fila
     motor_prolog.assertz("""
         valido_en_fila(Matriz, Fila, Numero) :-
             nth0(Fila, Matriz, FilaLista),
             \\+ member(Numero, FilaLista)
     """)
     
-    # Regla: Verificar si un número NO está en una columna específica
+    # Regla: Verifica si un número NO está en una columna
     motor_prolog.assertz("""
         valido_en_columna(Matriz, Columna, Numero) :-
             findall(Elem, (member(Fila, Matriz), nth0(Columna, Fila, Elem)), ColumnaLista),
             \\+ member(Numero, ColumnaLista)
     """)
     
-    # Regla: Verificar si un número NO está en el bloque 3x3
+    # Regla: Verifica si un número NO está en el bloque 3x3
     motor_prolog.assertz("""
         valido_en_bloque(Matriz, Fila, Columna, Numero) :-
             FilaBloque is Fila // 3,
@@ -111,18 +104,7 @@ def configurar_reglas_sudoku_validacion():
     print("Reglas de validación de Sudoku cargadas en Prolog.")
 
 def validar_numero_prolog(matriz, fila, col, num):
-    """
-    Interfaz Python para validar si un número puede colocarse en una posición.
-    
-    Args:
-        matriz: Matriz NumPy 9x9 del tablero actual
-        fila: Índice de fila (0-8)
-        col: Índice de columna (0-8)
-        num: Número a validar (1-9)
-    
-    Returns:
-        bool: True si el movimiento es válido, False en caso contrario
-    """
+    # Valida si un número puede colocarse en una posición usando Prolog
     try:
         # Convierte la matriz NumPy a lista de listas para Prolog
         matriz_lista = matriz_numpy_a_lista(matriz)
@@ -136,6 +118,7 @@ def validar_numero_prolog(matriz, fila, col, num):
         # Si hay resultados, el movimiento es válido
         return len(resultado) > 0
         
+    # Captura errores de validación
     except Exception as e:
         print(f"Error en validación Prolog: {e}")
         # En caso de error, retorna False por seguridad

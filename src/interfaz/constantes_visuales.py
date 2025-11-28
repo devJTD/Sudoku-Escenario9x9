@@ -1,29 +1,29 @@
 # src/interfaz/constantes_visuales.py
 import pygame
 
-# --- CONFIGURACIÓN DE LA VENTANA ---
+# Configuración de ventana
 ANCHO_PANTALLA = 1200
 ALTO_PANTALLA = 750
 TITULO_JUEGO = "Escenario 9x9"
 
-# --- RUTAS DE RECURSOS ---
+# Rutas de recursos
 RUTA_ICONO = 'assets/icono.png'
 RUTA_FONDO_MENU = 'assets/fondo_menu.jpg'
 RUTA_TITULO_IMAGEN = 'assets/titulo_logo.png'
 
-# --- PALETA DE COLORES BASE ---
+# Paleta de colores base
 BLANCO = (255, 255, 255)
 NEGRO = (0, 0, 0)
 COLOR_FONDO_MENU = NEGRO
 COLOR_FONDO_JUEGO = (50, 50, 50)
 
-# --- COLORES DE BOTONES DEL MENÚ ---
+# Colores de botones del menú
 COLOR_JUGAR_BASE = (60, 120, 220)
 COLOR_JUGAR_HOVER = (90, 150, 250)
 COLOR_SALIR_BASE = (255, 215, 0)
 COLOR_SALIR_HOVER = (255, 230, 80)
 
-# --- COLORES DE BOTONES DEL JUEGO ---
+# Colores de botones del juego
 COLOR_REINICIAR_BASE = (220, 100, 60)
 COLOR_REINICIAR_HOVER = (250, 130, 90)
 COLOR_NUEVO_BASE = (60, 180, 100)
@@ -35,7 +35,7 @@ COLOR_PISTA_HOVER = (186, 85, 211)
 COLOR_RESOLVER_BASE = (255, 140, 0)
 COLOR_RESOLVER_HOVER = (255, 165, 0)
 
-# --- CONFIGURACIÓN DEL TABLERO ---
+# Configuración del tablero
 TAMANO_GRILLA = 540
 TAMANO_CELDA = TAMANO_GRILLA // 9
 GROSOR_LINEA_FINA = 1
@@ -43,12 +43,12 @@ GROSOR_LINEA_GRUESA = 3
 OFFSET_GRILLA_X = (ANCHO_PANTALLA - TAMANO_GRILLA) // 2
 OFFSET_GRILLA_Y = 150
 
-# --- COLORES DEL TABLERO ---
+# Colores del tablero
 COLOR_FIJO = (0, 0, 150)
 COLOR_GRILLA_FINA = (150, 150, 150)
 COLOR_GRILLA_GRUESA = (0, 0, 0)
 COLOR_SELECCION = (100, 200, 255)
 COLOR_ERROR = (255, 0, 0)
 
-# --- CONFIGURACIÓN DE DIFICULTAD ---
-MAXIMO_ERRORES = 10  # Renombrado de MAX_ERRORES a palabra completa
+# Configuración de dificultad
+MAXIMO_ERRORES = 10

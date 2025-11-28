@@ -6,7 +6,7 @@ import numpy as np
 import random
 import time
 
-# Importa módulos propios refactorizados
+# Importa módulos del proyecto
 from interfaz.constantes_visuales import *
 from interfaz.componentes_graficos import BotonInteractivo, CampoTexto
 from interfaz.renderizador_juego import (dibujar_grilla, dibujar_seleccion, dibujar_numeros, dibujar_victoria, dibujar_derrota, dibujar_tabla_puntuaciones)
@@ -17,32 +17,38 @@ from nucleo.validacion_prolog import validar_numero_prolog
 from utilidades.estados_juego import *
 
 def ejecutar_juego():
+    # Inicializa Pygame y crea la ventana principal
     pygame.init()
     pantalla = pygame.display.set_mode((ANCHO_PANTALLA, ALTO_PANTALLA))
     pygame.display.set_caption(TITULO_JUEGO)
     
+    # Intenta cargar el icono de la ventana (ignora si no existe)
     try:
         icono_imagen = pygame.image.load(RUTA_ICONO)
         pygame.display.set_icon(icono_imagen)
     except: pass
     
+    # Intenta cargar la imagen de fondo del menú
     fondo_menu_imagen = None
     try:
         fondo_menu_imagen = pygame.image.load(RUTA_FONDO_MENU).convert()
         fondo_menu_imagen = pygame.transform.scale(fondo_menu_imagen, (ANCHO_PANTALLA, ALTO_PANTALLA))
     except: pass
     
+    # Intenta cargar la imagen del título
     titulo_imagen = None
     try:
         titulo_imagen = pygame.image.load(RUTA_TITULO_IMAGEN).convert_alpha()
     except: pass
 
+    # Genera el tablero inicial del juego
     matriz_inicial, matriz_solucion = generar_tablero_nuevo()
+    # Si falla la generación, cierra el juego
     if matriz_inicial is None:
         pygame.quit()
         sys.exit()
 
-    # Estado del juego (Variables locales en lugar de globales)
+    # Variables de estado del juego
     estado_actual = ESTADO_MENU
     nombre_usuario = "Jugador"
     tiempo_inicio = 0
@@ -50,13 +56,15 @@ def ejecutar_juego():
     pistas_contador = 0
     estadisticas_partida_actual = {}
     
+    # Crea copias de las matrices para el juego
     matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
     matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
     matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
     celda_seleccionada = None
 
-    # --- FUNCIONES DE ACCIÓN (Closures para manejar estado local) ---
+    # Funciones de acción para botones (closures con estado local)
     def accion_iniciar_juego():
+        # Cambia al estado de juego y resetea contadores
         nonlocal estado_actual, tiempo_inicio, errores_contador, pistas_contador
         print("Transición a la pantalla de JUEGO.")
         estado_actual = ESTADO_JUEGO
@@ -75,6 +83,7 @@ def ejecutar_juego():
         estado_actual = ESTADO_PUNTUACIONES
 
     def accion_reiniciar():
+        # Reinicia el tablero actual al estado inicial
         nonlocal matriz_actual, matriz_errores, tiempo_inicio, errores_contador, pistas_contador
         matriz_actual = matriz_fija.copy().astype(TIPO_MATRIZ)
         matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
@@ -84,9 +93,11 @@ def ejecutar_juego():
         print("Tablero reiniciado.")
 
     def accion_nuevo_juego():
+        # Genera un tablero completamente nuevo
         nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial, matriz_solucion
         nonlocal tiempo_inicio, errores_contador, pistas_contador
         nueva_matriz, nueva_solucion = generar_tablero_nuevo()
+        # Si la generación fue exitosa, actualiza todas las matrices
         if nueva_matriz is not None:
             matriz_inicial = nueva_matriz
             matriz_solucion = nueva_solucion
@@ -99,10 +110,13 @@ def ejecutar_juego():
             print("Nuevo juego generado.")
 
     def accion_pista():
+        # Revela un número aleatorio de la solución
         nonlocal matriz_actual, matriz_solucion, matriz_errores, pistas_contador
         if matriz_solucion is None: return
+        # Encuentra todas las celdas vacías
         celdas_vacias = [(f, c) for f in range(9) for c in range(9) if matriz_actual[f, c] == 0]
         if not celdas_vacias: return
+        # Selecciona una celda aleatoria y revela su valor
         fila, col = random.choice(celdas_vacias)
         matriz_actual[fila, col] = matriz_solucion[fila, col]
         matriz_errores[fila, col] = 0
@@ -110,6 +124,7 @@ def ejecutar_juego():
         print(f"Pista dada en ({fila}, {col})")
 
     def accion_resolver():
+        # Muestra la solución completa del tablero
         nonlocal matriz_actual, matriz_solucion, matriz_errores
         if matriz_solucion is not None:
             matriz_actual = resolver_tablero(matriz_solucion)
@@ -120,7 +135,7 @@ def ejecutar_juego():
         nonlocal estado_actual
         estado_actual = ESTADO_MENU
 
-    # --- ELEMENTOS UI ---
+    # Elementos de interfaz de usuario
     ANCHO_BOTON = 250
     ALTO_BOTON = 70 
     ESPACIO_Y = 100
@@ -134,7 +149,7 @@ def ejecutar_juego():
     
     caja_texto_usuario = CampoTexto(POSICION_X_BOTON, POSICION_Y_INICIO - 80, 250, 50, nombre_usuario)
 
-    # Botones Juego
+    # Botones del juego
     X_BOTONES_JUEGO = 950
     Y_INICIO_BOTONES = 200
     ANCHO_BOTON_JUEGO = 200
@@ -148,28 +163,36 @@ def ejecutar_juego():
     boton_menu_juego = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 4, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu)
     botones_juego = [boton_reiniciar, boton_nuevo, boton_pista, boton_resolver, boton_menu_juego]
 
-    # --- BUCLE PRINCIPAL ---
+    # Bucle principal del juego
     while estado_actual != ESTADO_SALIR: 
+        # Procesa todos los eventos de Pygame
         for evento in pygame.event.get():
+            # Detecta si el usuario cierra la ventana
             if evento.type == pygame.QUIT:
                 estado_actual = ESTADO_SALIR
             
+            # Maneja eventos del menú principal
             if estado_actual == ESTADO_MENU:
                 for boton in botones_menu: boton.manejar_evento(evento)
                 
-                # Actualizar nombre usuario
+                # Actualiza el nombre de usuario
                 nuevo_texto = caja_texto_usuario.manejar_evento(evento)
                 if nuevo_texto is not None:
                     nombre_usuario = nuevo_texto
             
+            # Maneja eventos durante el juego
             elif estado_actual == ESTADO_JUEGO:
                 for boton in botones_juego: boton.manejar_evento(evento)
+                # Detecta clic del mouse para seleccionar celda
                 if evento.type == pygame.MOUSEBUTTONDOWN:
                     celda_seleccionada = obtener_coordenadas_matriz(evento.pos, OFFSET_GRILLA_X, OFFSET_GRILLA_Y, TAMANO_CELDA)
+                # Detecta teclas presionadas si hay una celda seleccionada
                 if evento.type == pygame.KEYDOWN and celda_seleccionada:
                     fila, columna = celda_seleccionada
+                    # Solo permite editar celdas que no son fijas
                     if matriz_fija[fila, columna] == 0:
                         numero = None
+                        # Mapea las teclas numéricas a valores
                         if evento.key in [pygame.K_1, pygame.K_KP1]: numero = 1
                         elif evento.key in [pygame.K_2, pygame.K_KP2]: numero = 2
                         elif evento.key in [pygame.K_3, pygame.K_KP3]: numero = 3
@@ -181,21 +204,26 @@ def ejecutar_juego():
                         elif evento.key in [pygame.K_9, pygame.K_KP9]: numero = 9
                         elif evento.key in [pygame.K_BACKSPACE, pygame.K_DELETE]: numero = 0
                         
+                        # Si se presionó una tecla válida
                         if numero is not None:
                             try:
+                                # Valida el número antes de colocarlo
                                 matriz_para_validar = colocar_numero(matriz_actual, fila, columna, 0)
                                 if numero != 0:
                                     es_valido = validar_numero_prolog(matriz_para_validar, fila, columna, numero)
                                     es_error = not es_valido
                                 else:
+                                    # Borrar no es un error
                                     es_error = False
                                 
+                                # Coloca el número en la matriz
                                 matriz_actual = colocar_numero(matriz_actual, fila, columna, numero)
                                 matriz_errores = actualizar_errores(matriz_errores, fila, columna, es_error)
+                                # Si es un error, incrementa el contador
                                 if es_error:
                                     errores_contador += 1
                                     
-                                    # Verificar derrota (usando MAXIMO_ERRORES)
+                                    # Verifica si se alcanzó el límite de errores (derrota)
                                     if errores_contador >= MAXIMO_ERRORES:
                                         print("¡DERROTA!")
                                         tiempo_total = time.time() - tiempo_inicio
@@ -207,12 +235,13 @@ def ejecutar_juego():
                                         guardar_puntuacion_jugador(nombre_usuario, tiempo_total, errores_contador, pistas_contador, 0, "Derrota")
                                         estado_actual = ESTADO_DERROTA
                                 
+                                # Verifica si el jugador completó el tablero correctamente
                                 if not es_error and es_tablero_completo(matriz_actual):
                                     if es_tablero_valido(matriz_actual):
                                         print("¡VICTORIA!")
                                         tiempo_total = time.time() - tiempo_inicio
                                         
-                                        # Calcular puntaje
+                                        # Calcula el puntaje basado en tiempo, errores y pistas
                                         base_score = 10000
                                         score = base_score - (tiempo_total * 2) - (errores_contador * 100) - (pistas_contador * 200)
                                         score = max(0, int(score))
@@ -225,27 +254,35 @@ def ejecutar_juego():
                                         }
                                         guardar_puntuacion_jugador(nombre_usuario, tiempo_total, errores_contador, pistas_contador, score, "Victoria")
                                         estado_actual = ESTADO_VICTORIA
+                            # Captura errores de validación
                             except ValueError as e:
                                 print(f"Error: {e}")
 
+            # Maneja eventos en la pantalla de victoria
             elif estado_actual == ESTADO_VICTORIA:
+                # Clic para volver al tablero
                 if evento.type == pygame.MOUSEBUTTONDOWN:
                     estado_actual = ESTADO_JUEGO
 
+            # Maneja eventos en la pantalla de derrota
             elif estado_actual == ESTADO_DERROTA:
                 if evento.type == pygame.MOUSEBUTTONDOWN:
-                    # Reiniciar juego al hacer clic en pantalla de derrota
+                    # Reinicia el juego al hacer clic
                     accion_nuevo_juego()
                     estado_actual = ESTADO_JUEGO
             
+            # Maneja eventos en la pantalla de puntuaciones
             elif estado_actual == ESTADO_PUNTUACIONES:
+                # Clic o tecla para volver al menú
                 if evento.type == pygame.MOUSEBUTTONDOWN or evento.type == pygame.KEYDOWN:
                     estado_actual = ESTADO_MENU
 
-        # Renderizado
+        # Renderiza la pantalla según el estado actual
         if estado_actual == ESTADO_MENU:
+            # Dibuja el fondo del menú (imagen o color sólido)
             if fondo_menu_imagen: pantalla.blit(fondo_menu_imagen, (0, 0))
             else: pantalla.fill(COLOR_FONDO_MENU)
+            # Dibuja el título (imagen o texto)
             if titulo_imagen: pantalla.blit(titulo_imagen, (ANCHO_PANTALLA // 2 - titulo_imagen.get_width() // 2, 80))
             else:
                 fuente = pygame.font.Font(None, 80)
@@ -254,7 +291,7 @@ def ejecutar_juego():
             for boton in botones_menu: boton.dibujar(pantalla)
             caja_texto_usuario.dibujar(pantalla)
             
-            # Etiqueta Usuario
+            # Etiqueta de usuario
             fuente_lbl = pygame.font.Font(None, 30)
             lbl = fuente_lbl.render("Usuario:", True, BLANCO)
             pantalla.blit(lbl, (caja_texto_usuario.rect.x, caja_texto_usuario.rect.y - 30))
@@ -282,8 +319,10 @@ def ejecutar_juego():
             puntuaciones = cargar_puntuaciones_jugador(nombre_usuario)
             dibujar_tabla_puntuaciones(pantalla, puntuaciones, nombre_usuario)
 
+        # Actualiza la pantalla
         pygame.display.flip()
 
+    # Cierra Pygame y termina el programa
     pygame.quit()
     sys.exit()
 
