@@ -1,4 +1,4 @@
-# src/logica_nucleo.py
+# src/nucleo/logica_sudoku.py
 
 import numpy as np
 

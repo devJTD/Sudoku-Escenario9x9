@@ -1,6 +1,6 @@
-# src/renderizado.py
+# src/interfaz/renderizador_juego.py
 import pygame
-from config import *
+from interfaz.constantes_visuales import *
 
 def dibujar_grilla(pantalla):
     pygame.draw.rect(pantalla, BLANCO, (OFFSET_GRILLA_X, OFFSET_GRILLA_Y, TAMANO_GRILLA, TAMANO_GRILLA))

@@ -1,9 +1,9 @@
-# src/generador_sudoku.py
+# src/nucleo/generador_tableros.py
 
 import numpy as np
 import random
-from logica_nucleo import TIPO_MATRIZ
-from logica_prolog import validar_numero_prolog
+from nucleo.logica_sudoku import TIPO_MATRIZ
+from nucleo.validacion_prolog import validar_numero_prolog
 
 def es_valido_python(matriz, fila, col, num):
     """

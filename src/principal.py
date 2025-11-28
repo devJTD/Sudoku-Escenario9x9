@@ -1,4 +1,4 @@
-# src/main.py
+# src/principal.py
 
 import pygame
 import sys
@@ -7,19 +7,20 @@ import random
 import time
 
 # Importa módulos propios refactorizados
-from config import *
-from ui import Boton, CajaTexto
-from renderizado import (
+from interfaz.constantes_visuales import *
+from interfaz.componentes_graficos import BotonInteractivo, CampoTexto
+from interfaz.renderizador_juego import (
     dibujar_grilla, dibujar_seleccion, dibujar_numeros, 
     dibujar_victoria, dibujar_derrota, dibujar_tabla_puntuaciones
 )
-from persistencia import guardar_puntuacion, cargar_puntuaciones
-from manejador_datos import cargar_y_limpiar_datos
-from logica_nucleo import (
+from datos.gestor_puntuaciones import guardar_puntuacion_jugador, cargar_puntuaciones_jugador
+from datos.cargador_tableros import generar_tablero_nuevo
+from nucleo.logica_sudoku import (
     TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, 
     actualizar_errores, es_tablero_completo, es_tablero_valido, resolver_tablero
 )
-from logica_prolog import validar_numero_prolog
+from nucleo.validacion_prolog import validar_numero_prolog
+from utilidades.estados_juego import *
 
 def ejecutar_juego():
     pygame.init()
@@ -42,7 +43,7 @@ def ejecutar_juego():
         titulo_imagen = pygame.image.load(RUTA_TITULO_IMAGEN).convert_alpha()
     except: pass
 
-    matriz_inicial, matriz_solucion = cargar_y_limpiar_datos()
+    matriz_inicial, matriz_solucion = generar_tablero_nuevo()
     if matriz_inicial is None:
         pygame.quit()
         sys.exit()
@@ -91,7 +92,7 @@ def ejecutar_juego():
     def accion_nuevo_juego():
         nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial, matriz_solucion
         nonlocal tiempo_inicio, errores_contador, pistas_contador
-        nueva_matriz, nueva_solucion = cargar_y_limpiar_datos()
+        nueva_matriz, nueva_solucion = generar_tablero_nuevo()
         if nueva_matriz is not None:
             matriz_inicial = nueva_matriz
             matriz_solucion = nueva_solucion
@@ -132,12 +133,12 @@ def ejecutar_juego():
     POSICION_X_BOTON = (ANCHO_PANTALLA - ANCHO_BOTON) // 2
     POSICION_Y_INICIO = ALTO_PANTALLA // 2 + 20
 
-    boton_jugar = Boton(POSICION_X_BOTON, POSICION_Y_INICIO, ANCHO_BOTON, ALTO_BOTON, "Jugar", COLOR_JUGAR_BASE, COLOR_JUGAR_HOVER, accion_iniciar_juego)
-    boton_puntuaciones = Boton(POSICION_X_BOTON, POSICION_Y_INICIO + ESPACIO_Y, ANCHO_BOTON, ALTO_BOTON, "Ver Puntuaciones", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_ver_puntuaciones)
-    boton_salir = Boton(POSICION_X_BOTON, POSICION_Y_INICIO + ESPACIO_Y * 2, ANCHO_BOTON, ALTO_BOTON, "Salir", COLOR_SALIR_BASE, COLOR_SALIR_HOVER, accion_salir_juego)
+    boton_jugar = BotonInteractivo(POSICION_X_BOTON, POSICION_Y_INICIO, ANCHO_BOTON, ALTO_BOTON, "Jugar", COLOR_JUGAR_BASE, COLOR_JUGAR_HOVER, accion_iniciar_juego)
+    boton_puntuaciones = BotonInteractivo(POSICION_X_BOTON, POSICION_Y_INICIO + ESPACIO_Y, ANCHO_BOTON, ALTO_BOTON, "Ver Puntuaciones", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_ver_puntuaciones)
+    boton_salir = BotonInteractivo(POSICION_X_BOTON, POSICION_Y_INICIO + ESPACIO_Y * 2, ANCHO_BOTON, ALTO_BOTON, "Salir", COLOR_SALIR_BASE, COLOR_SALIR_HOVER, accion_salir_juego)
     botones_menu = [boton_jugar, boton_puntuaciones, boton_salir]
     
-    caja_texto_usuario = CajaTexto(POSICION_X_BOTON, POSICION_Y_INICIO - 80, 250, 50, nombre_usuario)
+    caja_texto_usuario = CampoTexto(POSICION_X_BOTON, POSICION_Y_INICIO - 80, 250, 50, nombre_usuario)
 
     # Botones Juego
     X_BOTONES_JUEGO = 950
@@ -146,11 +147,11 @@ def ejecutar_juego():
     ALTO_BOTON_JUEGO = 60
     ESPACIO_BOTONES = 80
 
-    boton_reiniciar = Boton(X_BOTONES_JUEGO, Y_INICIO_BOTONES, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Reiniciar", COLOR_REINICIAR_BASE, COLOR_REINICIAR_HOVER, accion_reiniciar)
-    boton_nuevo = Boton(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Nuevo Juego", COLOR_NUEVO_BASE, COLOR_NUEVO_HOVER, accion_nuevo_juego)
-    boton_pista = Boton(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 2, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Pista", COLOR_PISTA_BASE, COLOR_PISTA_HOVER, accion_pista)
-    boton_resolver = Boton(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 3, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Resolver", COLOR_RESOLVER_BASE, COLOR_RESOLVER_HOVER, accion_resolver)
-    boton_menu_juego = Boton(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 4, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu)
+    boton_reiniciar = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Reiniciar", COLOR_REINICIAR_BASE, COLOR_REINICIAR_HOVER, accion_reiniciar)
+    boton_nuevo = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Nuevo Juego", COLOR_NUEVO_BASE, COLOR_NUEVO_HOVER, accion_nuevo_juego)
+    boton_pista = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 2, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Pista", COLOR_PISTA_BASE, COLOR_PISTA_HOVER, accion_pista)
+    boton_resolver = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 3, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Resolver", COLOR_RESOLVER_BASE, COLOR_RESOLVER_HOVER, accion_resolver)
+    boton_menu_juego = BotonInteractivo(X_BOTONES_JUEGO, Y_INICIO_BOTONES + ESPACIO_BOTONES * 4, ANCHO_BOTON_JUEGO, ALTO_BOTON_JUEGO, "Menú", COLOR_MENU_BASE, COLOR_MENU_HOVER, accion_volver_menu)
     botones_juego = [boton_reiniciar, boton_nuevo, boton_pista, boton_resolver, boton_menu_juego]
 
     # --- BUCLE PRINCIPAL ---
@@ -200,8 +201,8 @@ def ejecutar_juego():
                                 if es_error:
                                     errores_contador += 1
                                     
-                                    # Verificar derrota
-                                    if errores_contador >= MAX_ERRORES:
+                                    # Verificar derrota (usando MAXIMO_ERRORES)
+                                    if errores_contador >= MAXIMO_ERRORES:
                                         print("¡DERROTA!")
                                         tiempo_total = time.time() - tiempo_inicio
                                         estadisticas_partida_actual = {
@@ -209,7 +210,7 @@ def ejecutar_juego():
                                             'errores': errores_contador,
                                             'pistas': pistas_contador
                                         }
-                                        guardar_puntuacion(nombre_usuario, tiempo_total, errores_contador, pistas_contador, 0, "Derrota")
+                                        guardar_puntuacion_jugador(nombre_usuario, tiempo_total, errores_contador, pistas_contador, 0, "Derrota")
                                         estado_actual = ESTADO_DERROTA
                                 
                                 if not es_error and es_tablero_completo(matriz_actual):
@@ -228,7 +229,7 @@ def ejecutar_juego():
                                             'pistas': pistas_contador,
                                             'puntaje': score
                                         }
-                                        guardar_puntuacion(nombre_usuario, tiempo_total, errores_contador, pistas_contador, score, "Victoria")
+                                        guardar_puntuacion_jugador(nombre_usuario, tiempo_total, errores_contador, pistas_contador, score, "Victoria")
                                         estado_actual = ESTADO_VICTORIA
                             except ValueError as e:
                                 print(f"Error: {e}")
@@ -284,7 +285,7 @@ def ejecutar_juego():
             dibujar_derrota(pantalla, estadisticas_partida_actual)
 
         elif estado_actual == ESTADO_PUNTUACIONES:
-            puntuaciones = cargar_puntuaciones(nombre_usuario)
+            puntuaciones = cargar_puntuaciones_jugador(nombre_usuario)
             dibujar_tabla_puntuaciones(pantalla, puntuaciones, nombre_usuario)
 
         pygame.display.flip()

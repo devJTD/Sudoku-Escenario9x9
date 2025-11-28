@@ -1,0 +1,1 @@
+# Módulo utilidades - Código compartido

@@ -1,4 +1,4 @@
-# src/logica_prolog.py
+# src/nucleo/validacion_prolog.py
 
 from pyswip import Prolog
 import numpy as np

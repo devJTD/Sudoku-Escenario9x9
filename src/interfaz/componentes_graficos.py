@@ -1,8 +1,10 @@
-# src/ui.py
+# src/interfaz/componentes_graficos.py
 import pygame
-from config import NEGRO
+from interfaz.constantes_visuales import NEGRO
 
-class Boton:
+class BotonInteractivo:
+    """Botón interactivo con efectos hover y acción al hacer clic"""
+    
     def __init__(self, x, y, ancho, alto, texto, color_base, color_hover, accion=None):
         self.rect = pygame.Rect(x, y, ancho, alto)
         self.texto = texto
@@ -32,7 +34,9 @@ class Boton:
             if self.rect.collidepoint(evento.pos) and self.accion:
                 self.accion()
 
-class CajaTexto:
+class CampoTexto:
+    """Campo de texto editable para entrada de usuario"""
+    
     def __init__(self, x, y, ancho, alto, texto=''):
         self.rect = pygame.Rect(x, y, ancho, alto)
         self.color_inactivo = pygame.Color('lightskyblue3')

@@ -1,10 +1,21 @@
-# src/persistencia.py
+# src/datos/gestor_puntuaciones.py
 import csv
 import os
 from datetime import datetime
 
-def guardar_puntuacion(nombre, tiempo, errores, pistas, puntaje, estado):
-    archivo = 'scores.csv'
+def guardar_puntuacion_jugador(nombre, tiempo, errores, pistas, puntaje, estado):
+    """
+    Guarda la puntuación de un jugador en el archivo CSV.
+    
+    Args:
+        nombre: Nombre del jugador
+        tiempo: Tiempo de juego en segundos
+        errores: Número de errores cometidos
+        pistas: Número de pistas usadas
+        puntaje: Puntaje obtenido
+        estado: Estado final del juego (Victoria/Derrota)
+    """
+    archivo = 'puntuaciones.csv'  # Renombrado de scores.csv
     nuevo_header = ['Nombre', 'Tiempo', 'Errores', 'Pistas', 'Puntaje', 'Estado', 'Fecha']
     filas_existentes = []
     header_actual = []
@@ -44,8 +55,17 @@ def guardar_puntuacion(nombre, tiempo, errores, pistas, puntaje, estado):
     except Exception as e:
         print(f"Error al guardar puntuación: {e}")
 
-def cargar_puntuaciones(nombre_filtro=None):
-    archivo = 'scores.csv'
+def cargar_puntuaciones_jugador(nombre_filtro=None):
+    """
+    Carga las puntuaciones desde el archivo CSV.
+    
+    Args:
+        nombre_filtro: Si se especifica, solo carga puntuaciones de ese jugador
+        
+    Returns:
+        Lista de diccionarios con las puntuaciones
+    """
+    archivo = 'puntuaciones.csv'  # Renombrado de scores.csv
     puntuaciones = []
     if os.path.isfile(archivo):
         try:

@@ -1,9 +1,9 @@
-# src/manejador_datos.py
+# src/datos/cargador_tableros.py
 
 import numpy as np
-from generador_sudoku import generar_sudoku
+from nucleo.generador_tableros import generar_sudoku
 
-def cargar_y_limpiar_datos(dificultad='medio'):
+def generar_tablero_nuevo(dificultad='medio'):
     """
     Genera un tablero de Sudoku programáticamente usando NumPy y Prolog.
     
