@@ -51,13 +51,6 @@ def ejecutar_juego():
     except:
         print("[DEBUG] Título no encontrado, usando texto por defecto")
 
-    # Genera el tablero inicial del juego
-    matriz_inicial, matriz_solucion = generar_tablero_nuevo()
-    # Si falla la generación, cierra el juego
-    if matriz_inicial is None:
-        pygame.quit()
-        sys.exit()
-
     # Variables de estado del juego
     estado_actual = ESTADO_MENU
     nombre_usuario = "Jugador"
@@ -66,19 +59,38 @@ def ejecutar_juego():
     pistas_contador = 0
     estadisticas_partida_actual = {}
     
-    # INMUTABILIDAD: Crea copias de las matrices para el juego
-    # Cada copia es independiente, evitando mutaciones accidentales del estado original
-    matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
-    matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
-    matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+    # INMUTABILIDAD: Inicializa las matrices como None
+    # Se generarán cuando el usuario presione "Jugar" por primera vez
+    matriz_inicial = None
+    matriz_solucion = None
+    matriz_fija = None
+    matriz_actual = None
+    matriz_errores = None
     celda_seleccionada = None
 
     # Funciones de acción para botones (closures con estado local)
     def accion_iniciar_juego():
-        # Cambia al estado de juego y resetea contadores
+        # Cambia al estado de juego, genera nuevo tablero y resetea contadores
         nonlocal estado_actual, tiempo_inicio, errores_contador, pistas_contador
+        nonlocal matriz_actual, matriz_fija, matriz_errores, matriz_inicial, matriz_solucion
         print("\n" + "-"*60)
         print("[JUEGO] Transición: MENU -> JUEGO")
+        print("[JUEGO] Generando nuevo tablero...")
+        
+        # Genera un tablero completamente nuevo
+        nueva_matriz, nueva_solucion = generar_tablero_nuevo()
+        
+        # Si la generación fue exitosa, actualiza todas las matrices
+        if nueva_matriz is not None:
+            # INMUTABILIDAD: Asigna nuevas matrices en lugar de modificar las existentes
+            matriz_inicial = nueva_matriz
+            matriz_solucion = nueva_solucion
+            # Crea copias independientes para cada propósito
+            matriz_fija = matriz_inicial.copy().astype(TIPO_MATRIZ)
+            matriz_actual = matriz_inicial.copy().astype(TIPO_MATRIZ)
+            matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
+            print("[SUCCESS] Nuevo tablero generado correctamente")
+        
         print("[JUEGO] Iniciando nueva partida...")
         print("-"*60)
         estado_actual = ESTADO_JUEGO
@@ -98,7 +110,11 @@ def ejecutar_juego():
 
     def accion_reiniciar():
         # Reinicia el tablero actual al estado inicial
-        nonlocal matriz_actual, matriz_errores, tiempo_inicio, errores_contador, pistas_contador
+        nonlocal matriz_actual, matriz_errores, tiempo_inicio, errores_contador, pistas_contador, matriz_fija
+        # Valida que exista un juego iniciado
+        if matriz_fija is None:
+            print("[DEBUG] No hay juego iniciado para reiniciar")
+            return
         # INMUTABILIDAD: Crea nuevas copias en lugar de modificar las existentes
         matriz_actual = matriz_fija.copy().astype(TIPO_MATRIZ)
         matriz_errores = np.zeros((9, 9), dtype=TIPO_MATRIZ)
@@ -212,7 +228,7 @@ def ejecutar_juego():
                     if celda_seleccionada:
                         print(f"[USUARIO] Celda seleccionada: {celda_seleccionada}")
                 # Detecta teclas presionadas si hay una celda seleccionada
-                if evento.type == pygame.KEYDOWN and celda_seleccionada:
+                if evento.type == pygame.KEYDOWN and celda_seleccionada and matriz_fija is not None:
                     fila, columna = celda_seleccionada
                     # Solo permite editar celdas que no son fijas
                     if matriz_fija[fila, columna] == 0:
@@ -337,7 +353,9 @@ def ejecutar_juego():
             pantalla.fill(COLOR_FONDO_JUEGO)
             dibujar_grilla(pantalla)
             dibujar_seleccion(pantalla, celda_seleccionada)
-            dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
+            # Solo dibuja el tablero si las matrices están inicializadas
+            if matriz_actual is not None and matriz_fija is not None and matriz_errores is not None:
+                dibujar_numeros(pantalla, matriz_actual, matriz_fija, matriz_errores)
             for boton in botones_juego: boton.dibujar(pantalla)
 
         elif estado_actual == ESTADO_VICTORIA:
