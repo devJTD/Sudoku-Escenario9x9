@@ -9,16 +9,10 @@ import time
 # Importa módulos propios refactorizados
 from interfaz.constantes_visuales import *
 from interfaz.componentes_graficos import BotonInteractivo, CampoTexto
-from interfaz.renderizador_juego import (
-    dibujar_grilla, dibujar_seleccion, dibujar_numeros, 
-    dibujar_victoria, dibujar_derrota, dibujar_tabla_puntuaciones
-)
+from interfaz.renderizador_juego import (dibujar_grilla, dibujar_seleccion, dibujar_numeros, dibujar_victoria, dibujar_derrota, dibujar_tabla_puntuaciones)
 from datos.gestor_puntuaciones import guardar_puntuacion_jugador, cargar_puntuaciones_jugador
 from datos.cargador_tableros import generar_tablero_nuevo
-from nucleo.logica_sudoku import (
-    TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, 
-    actualizar_errores, es_tablero_completo, es_tablero_valido, resolver_tablero
-)
+from nucleo.logica_sudoku import (TIPO_MATRIZ, obtener_coordenadas_matriz, colocar_numero, actualizar_errores, es_tablero_completo, es_tablero_valido, resolver_tablero)
 from nucleo.validacion_prolog import validar_numero_prolog
 from utilidades.estados_juego import *
 
