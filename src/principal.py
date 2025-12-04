@@ -335,8 +335,8 @@ def ejecutar_juego():
             # Maneja eventos en la pantalla de derrota
             elif estado_actual == ESTADO_DERROTA:
                 if evento.type == pygame.MOUSEBUTTONDOWN:
-                    # Reinicia el juego al hacer clic
-                    accion_nuevo_juego()
+                    # Reinicia el tablero actual al hacer clic
+                    accion_reiniciar()
                     estado_actual = ESTADO_JUEGO
             
             # Maneja eventos en la pantalla de puntuaciones
